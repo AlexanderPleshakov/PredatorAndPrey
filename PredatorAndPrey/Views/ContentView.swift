@@ -19,9 +19,8 @@ struct ContentView: View {
     @State var fieldWidth: String = "30"
     @State var fieldHeight: String = "15"
     
-    @State var items: [ItemModel] = []
+    @State var items: [Animal] = []
     @State var columns: [GridItem] = []
-    @State var field: [[ItemModel]] = []
     
     @State var error: Error? = nil
     
@@ -31,8 +30,8 @@ struct ContentView: View {
     @State var fieldWindowHeight: CGFloat = 0
     @State var cellSize: CGFloat = 0
     
-    private let fieldUpdater = FieldUpdater()
-    
+    @ObservedObject var fieldManager: FieldManager
+     
     var body: some View {
         GeometryReader { geometry in
             let windowWidth = geometry.size.width
@@ -81,20 +80,22 @@ struct ContentView: View {
                     Button {
                         columns = Array(repeating: GridItem(.adaptive(minimum: 500 / CGFloat(Int(fieldWidth) ?? 1)), spacing: 0), count: Int(fieldWidth) ?? 0)
                         do {
-                            self.field = try FieldGenerator().generateField(
+                            let field = try FieldGenerator().generateField(
                                 width: Int(fieldWidth) ?? 0,
                                 height: Int(fieldHeight) ?? 0,
                                 rabbits: Int(rabbitCount) ?? 0,
                                 wolfMale: Int(wolfsMaleCount) ?? 0,
                                 wolfFemale: Int(wolfsFemaleCount) ?? 0
                             )
-                            var resultItems: [ItemModel] = []
-                            for models in field {
-                                resultItems += models
-                            }
-                            self.items = resultItems
+                            updateItems(with: field)
                             
-                            print(field)
+                            fieldManager.setInitialState(
+                                rabbitCount: Int(rabbitCount) ?? 0,
+                                wolfsMaleCount: Int(wolfsMaleCount) ?? 0,
+                                wolfsFemaleCount: Int(wolfsFemaleCount) ?? 0,
+                                wolfLifeTime: Int(wolfLifeTime) ?? 0,
+                                field: field
+                            )
                         } catch {
                             self.error = error
                         }
@@ -121,12 +122,8 @@ struct ContentView: View {
                             }
                         }
                         SystemButton(title: "Шаг", systemImage: "arrow.right") {
-                            field = fieldUpdater.nextStep(field: field)
-                            var resultItems: [ItemModel] = []
-                            for models in field {
-                                resultItems += models
-                            }
-                            self.items = resultItems
+                            let field = fieldManager.nextStep()
+                            updateItems(with: field)
                         }
                             .frame(maxWidth: .infinity)
                     }
@@ -141,7 +138,6 @@ struct ContentView: View {
                     LazyVGrid(columns: columns, alignment: .leading, spacing: 0) {
                         ForEach(items) { item in
                             ItemView(size: 30, model: item)
-                                .drawingGroup()
                         }
                     }
                     .frame(alignment: .topLeading)
@@ -152,8 +148,16 @@ struct ContentView: View {
         }
         .frame(minWidth: 700, idealWidth: 1200, minHeight: 500, idealHeight: 800)
     }
+    
+    private func updateItems(with field: Array<[Animal]>) {
+        var resultItems: [Animal] = []
+        for models in field {
+            resultItems += models
+        }
+        self.items = resultItems
+    }
 }
 
 #Preview {
-    ContentView()
+    ContentView(fieldManager: FieldManager())
 }

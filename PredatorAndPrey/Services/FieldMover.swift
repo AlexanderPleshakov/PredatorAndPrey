@@ -1,43 +1,21 @@
 //
-//  FieldUpdater.swift
+//  FieldMover.swift
 //  PredatorAndPrey
 //
 //  Created by Александр Плешаков on 16.02.2025.
 //
 
-import Foundation
 
-final class FieldUpdater {
-    func nextStep(field: Array<[ItemModel]>) -> [[ItemModel]] {
-        var newField = field
-        for (modelsIndex, models) in field.enumerated() {
-            for (elementIndex, model) in models.enumerated() {
-                switch model.type {
-                case .rabbit:
-                    if let newRabbitPosition = getRandomMovePosition(
-                        on: newField,
-                        currentPosition: (modelsIndex, elementIndex)
-                    ) {
-                        newField.swapPosition(
-                            old: (modelsIndex, elementIndex),
-                            new: newRabbitPosition
-                        )
-                    }
-                case .wolfFemale:
-                    break
-                case .wolfMale:
-                    break
-                case .empty:
-                    break
-                }
-            }
-        }
-        
-        return newField
-    }
-    
+protocol FieldMover {
     func getRandomMovePosition(
-        on field: [[ItemModel]],
+        on field: [[Animal]],
+        currentPosition: (Int, Int)
+    ) -> (Int, Int)?
+}
+
+final class FieldMoverImpl: FieldMover {
+    func getRandomMovePosition(
+        on field: [[Animal]],
         currentPosition: (Int, Int)
     ) -> (Int, Int)? {
         guard let first = field.first, !field.isEmpty || !first.isEmpty else {
@@ -89,7 +67,7 @@ final class FieldUpdater {
             if field[row][element].type == .empty {
                 newPosition = (row, element)
             } else {
-                if let position = getPositionIndex(row: row, element: element) {
+                if let position = getPositionIndex(row: rowOffset, element: elementOffset) {
                     positions.remove(position)
                 }
             }
@@ -133,13 +111,5 @@ final class FieldUpdater {
         }
         
         return position
-    }
-}
-
-extension Array where Element == [ItemModel] {
-    mutating func swapPosition(old: (Int, Int), new: (Int, Int)) {
-        let element = self[old.0][old.1]
-        self[old.0][old.1] = ItemModel(number: 0, type: .empty)
-        self[new.0][new.1] = element
     }
 }

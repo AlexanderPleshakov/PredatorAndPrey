@@ -9,11 +9,11 @@ import SwiftUI
 
 struct ItemView: View {
     let size: CGFloat?
-    let model: ItemModel
+    let model: Animal
 
     var body: some View {
         if model.type != .empty {
-            Text("\(model.number)")
+            Text("")
                 .font(.system(size: 13))
                 .frame(width: size, height: size)
                 .background(model.type == .rabbit ? .blue : (model.type == .wolfMale ? .red : .pink))
