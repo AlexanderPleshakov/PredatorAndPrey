@@ -7,7 +7,7 @@
 import Foundation
 
 final class FieldGenerator {
-    func generateField(width: Int, height: Int, rabbits: Int, wolfMale: Int, wolfFemale: Int) throws -> [[ItemModel?]] {
+    func generateField(width: Int, height: Int, rabbits: Int, wolfMale: Int, wolfFemale: Int) throws -> [[ItemModel]] {
         if width * height < rabbits + wolfMale + wolfFemale {
             throw GenerationError.smallField
         }
@@ -15,13 +15,13 @@ final class FieldGenerator {
         var currentwolfMale = wolfMale
         var currentwolfFemale = wolfFemale
         
-        var resultArray: [[ItemModel?]] = Array(repeating: Array(repeating: nil, count: width), count: height)
+        var resultArray: [[ItemModel]] = Array(repeating: Array(repeating: ItemModel(number: 0, type: .empty), count: width), count: height)
         
         while currentRabits + currentwolfMale + currentwolfFemale != 0 {
             let rowIndex = Int.random(in: 0..<height)
             let modelIndex = Int.random(in: 0..<width)
             
-            if resultArray[rowIndex][modelIndex] != nil {
+            if resultArray[rowIndex][modelIndex].type != .empty {
                 continue
             } else {
                 let type = Int.random(in: 0..<3)

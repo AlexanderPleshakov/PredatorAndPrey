@@ -21,15 +21,23 @@ struct ContentView: View {
     
     @State var items: [ItemModel] = []
     @State var columns: [GridItem] = []
-    @State var field: [[ItemModel?]] = []
+    @State var field: [[ItemModel]] = []
     
     @State var error: Error? = nil
+    
+    @State var windowWidth: CGFloat = 0
+    @State var menuWindowWidth: CGFloat = 0
+    @State var fieldWindowWidth: CGFloat = 0
+    @State var fieldWindowHeight: CGFloat = 0
+    @State var cellSize: CGFloat = 0
     
     var body: some View {
         GeometryReader { geometry in
             let windowWidth = geometry.size.width
             let menuWindowWidth = (windowWidth * 0.25 < 200 ? 200 : (windowWidth * 0.25 > 300 ? 300 : windowWidth * 0.25))
             let fieldWindowWidth: CGFloat = (menuWindowWidth < 200 ? windowWidth - 200 : (windowWidth * 0.25 > 300 ? windowWidth - 300 : windowWidth * 0.75))
+            let fieldWindowHeight: CGFloat = geometry.size.height - 32
+            let cellSize: CGFloat = Int(fieldWidth) != nil ? fieldWindowWidth / CGFloat(Int(fieldWidth)!) : 0
             
             HStack(alignment: .top, spacing: 0) {
                 VStack(alignment: .center, spacing: 10) {
@@ -69,7 +77,7 @@ struct ContentView: View {
                     )
                     
                     Button {
-                        columns = Array(repeating: GridItem(.adaptive(minimum: 30)), count: Int(fieldWidth) ?? 0)
+                        columns = Array(repeating: GridItem(.adaptive(minimum: 500 / CGFloat(Int(fieldWidth) ?? 1)), spacing: 0), count: Int(fieldWidth) ?? 0)
                         do {
                             self.field = try FieldGenerator().generateField(
                                 width: Int(fieldWidth) ?? 0,
@@ -78,6 +86,11 @@ struct ContentView: View {
                                 wolfMale: Int(wolfsMaleCount) ?? 0,
                                 wolfFemale: Int(wolfsFemaleCount) ?? 0
                             )
+                            var resultItems: [ItemModel] = []
+                            for models in field {
+                                resultItems += models
+                            }
+                            self.items = resultItems
                             
                             print(field)
                         } catch {
@@ -105,26 +118,22 @@ struct ContentView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal, 10)
-                    
                     .frame(maxWidth: .infinity)
                     .padding(.bottom)
 
                 }
                 .frame(width: menuWindowWidth)
                 
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 2) {
-                        ForEach(items, id: \.self) { item in
-                            Text("\(item.number)")
-                                .font(.title)
-                                .frame(width: 30, height: 30)
-                                .background(Color.red.opacity(0.7))
-                                .foregroundColor(.white)
+                ScrollView([.horizontal, .vertical]) {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: 0) {
+                        ForEach(items) { item in
+                            ItemView(size: 30, model: item)
+                                .drawingGroup()
                         }
                     }
-                    .padding()
+                    .frame(alignment: .topLeading)
+                    .background(.white.opacity(0.1))
                 }
-                .frame(width: fieldWindowWidth)
                 .background(.white.opacity(0.2))
             }
         }

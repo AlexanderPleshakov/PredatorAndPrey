@@ -12,10 +12,16 @@ struct ItemView: View {
     let model: ItemModel
 
     var body: some View {
-        Text("\(model.number)")
-            .font(.title)
-            .frame(width: size, height: size)
-            .background(model.type == .rabbit ? .blue : (model.type == .wolfMale ? .red : .orange))
-            .foregroundColor(.white)
+        if model.type != .empty {
+            Text("\(model.number)")
+                .font(.system(size: 13))
+                .frame(width: size, height: size)
+                .background(model.type == .rabbit ? .blue : (model.type == .wolfMale ? .red : .orange))
+                .foregroundColor(.white)
+        } else {
+            Color.clear
+                .frame(width: size, height: size)
+        }
+        
     }
 }

@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct ItemModel: Hashable {
+struct ItemModel: Hashable, Identifiable {
+    let id: UUID = UUID()
     let number: Int
     let type: ItemViewType
 }

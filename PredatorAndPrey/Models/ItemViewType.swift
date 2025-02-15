@@ -7,5 +7,5 @@
 
 
 enum ItemViewType {
-    case rabbit, wolfMale, wolfFemale
+    case rabbit, wolfMale, wolfFemale, empty
 }
