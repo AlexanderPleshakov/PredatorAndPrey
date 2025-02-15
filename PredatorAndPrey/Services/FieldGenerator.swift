@@ -6,6 +6,8 @@
 //
 import Foundation
 
+
+
 final class FieldGenerator {
     func generateField(width: Int, height: Int, rabbits: Int, wolfMale: Int, wolfFemale: Int) throws -> [[ItemModel]] {
         if width * height < rabbits + wolfMale + wolfFemale {

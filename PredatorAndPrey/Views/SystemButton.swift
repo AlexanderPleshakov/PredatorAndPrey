@@ -10,10 +10,11 @@ import SwiftUI
 struct SystemButton: View {
     var title: String
     var systemImage: String
+    var action: () -> Void
 
     var body: some View {
         Button {
-            print("\(title) нажата")
+            action()
         } label: {
             Label(title, systemImage: systemImage)
                 .frame(maxWidth: .infinity)

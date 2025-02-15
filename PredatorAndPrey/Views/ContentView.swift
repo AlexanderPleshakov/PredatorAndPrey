@@ -31,6 +31,8 @@ struct ContentView: View {
     @State var fieldWindowHeight: CGFloat = 0
     @State var cellSize: CGFloat = 0
     
+    private let fieldUpdater = FieldUpdater()
+    
     var body: some View {
         GeometryReader { geometry in
             let windowWidth = geometry.size.width
@@ -111,10 +113,21 @@ struct ContentView: View {
                     
                     VStack {
                         HStack {
-                            SystemButton(title: "Старт", systemImage: "play.fill")
-                            SystemButton(title: "Стоп", systemImage: "stop.fill")
+                            SystemButton(title: "Старт", systemImage: "play.fill") {
+                                
+                            }
+                            SystemButton(title: "Стоп", systemImage: "stop.fill") {
+                                
+                            }
                         }
-                        SystemButton(title: "Шаг", systemImage: "arrow.right")
+                        SystemButton(title: "Шаг", systemImage: "arrow.right") {
+                            field = fieldUpdater.nextStep(field: field)
+                            var resultItems: [ItemModel] = []
+                            for models in field {
+                                resultItems += models
+                            }
+                            self.items = resultItems
+                        }
                             .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal, 10)

@@ -16,7 +16,7 @@ struct ItemView: View {
             Text("\(model.number)")
                 .font(.system(size: 13))
                 .frame(width: size, height: size)
-                .background(model.type == .rabbit ? .blue : (model.type == .wolfMale ? .red : .orange))
+                .background(model.type == .rabbit ? .blue : (model.type == .wolfMale ? .red : .pink))
                 .foregroundColor(.white)
         } else {
             Color.clear
