@@ -30,6 +30,9 @@ struct ContentView: View {
     @State var fieldWindowHeight: CGFloat = 0
     @State var cellSize: CGFloat = 0
     
+    @State var simulationRunning = false
+    @State private var timer: Timer?
+    
     @ObservedObject var fieldManager: FieldManager
      
     var body: some View {
@@ -116,10 +119,19 @@ struct ContentView: View {
                     VStack {
                         HStack {
                             SystemButton(title: "Старт", systemImage: "play.fill") {
-                                
+                                simulationRunning = true
+                                timer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { _ in
+                                    if simulationRunning {
+                                        let field = fieldManager.nextStep()
+                                        updateItems(with: field)
+                                    } else {
+                                        timer?.invalidate()
+                                    }
+                                }
                             }
                             SystemButton(title: "Стоп", systemImage: "stop.fill") {
-                                
+                                simulationRunning = false
+                                timer?.invalidate()
                             }
                         }
                         SystemButton(title: "Шаг", systemImage: "arrow.right") {
