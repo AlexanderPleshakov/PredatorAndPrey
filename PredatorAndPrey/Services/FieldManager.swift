@@ -7,14 +7,7 @@
 
 import Foundation
 
-protocol AnimalReproductor {
-    func reproduce(
-        field: Array<[Animal]>,
-        type: AnimalType,
-        population: Int,
-        parentPosition: (Int, Int)
-    ) -> (Animal, (Int, Int), Int)?
-}
+
 
 protocol FieldUpdater: ObservableObject {
     func nextStep() -> Array<[Animal]>
@@ -60,6 +53,7 @@ final class FieldManager: FieldUpdater {
         for (modelsIndex, models) in field.enumerated() {
             for (elementIndex, model) in models.enumerated() {
                 let currentPosition = (modelsIndex, elementIndex)
+                let animal = newField[modelsIndex][elementIndex]
                 
                 switch model.type {
                 case .rabbit:
@@ -67,41 +61,55 @@ final class FieldManager: FieldUpdater {
                         field: newField,
                         type: .rabbit,
                         population: rabbitCount,
-                        parentPosition: currentPosition
+                        parentPosition: currentPosition,
+                        maxHP: -1
                     ) {
                         newField.addAnimal(animal: newAnimal, position: newAnimalPosition)
-                        rabbitCount = population
+                        rabbitCount = population ?? 0
                     }
                     
-                    if let newRabbitPosition = fieldMover.getRandomMovePosition(
+                    if let newRabbitPosition = fieldMover.getRandomPosition(
                         on: newField,
-                        currentPosition: (modelsIndex, elementIndex)
+                        currentPosition: (modelsIndex, elementIndex),
+                        findType: .empty
                     ) {
-                        newField.swapPosition(
+                        newField.swapPositionAndChangeHP(
                             old: currentPosition,
                             new: newRabbitPosition
                         )
                     }
                 case .wolfFemale:
-                    if let newWolfPosititon = fieldMover.getRandomMovePosition(
-                        on: newField,
-                        currentPosition: (modelsIndex, elementIndex)
+                    if let (child, childPosition, _) = reproductor.reproduce(
+                        field: field,
+                        type: .wolfFemale,
+                        population: wolfsFemaleCount,
+                        parentPosition: currentPosition,
+                        maxHP: Double(wolfLifeTime)
                     ) {
-                        newField.swapPosition(
-                            old: currentPosition,
-                            new: newWolfPosititon
-                        )
+                        if child.type == .wolfMale {
+                            wolfsMaleCount += 1
+                        } else if child.type == .wolfFemale {
+                            wolfsFemaleCount += 1
+                        }
+                        newField.addAnimal(animal: child, position: childPosition)
                     }
+                    moveWolf(animal, field: &newField, currentPosition: currentPosition)
                 case .wolfMale:
-                    if let newWolfPosititon = fieldMover.getRandomMovePosition(
-                        on: newField,
-                        currentPosition: (modelsIndex, elementIndex)
+                    if let (child, childPosition, _) = reproductor.reproduce(
+                        field: field,
+                        type: .wolfMale,
+                        population: wolfsFemaleCount,
+                        parentPosition: currentPosition,
+                        maxHP: Double(wolfLifeTime)
                     ) {
-                        newField.swapPosition(
-                            old: currentPosition,
-                            new: newWolfPosititon
-                        )
+                        if child.type == .wolfMale {
+                            wolfsMaleCount += 1
+                        } else if child.type == .wolfFemale {
+                            wolfsFemaleCount += 1
+                        }
+                        newField.addAnimal(animal: child, position: childPosition)
                     }
+                    moveWolf(animal, field: &newField, currentPosition: currentPosition)
                 case .empty:
                     break
                 }
@@ -111,59 +119,110 @@ final class FieldManager: FieldUpdater {
         self.field = newField
         return newField
     }
-}
-
-final class AnimalReproductorImpl: AnimalReproductor {
-    func reproduce(
-        field: Array<[Animal]>,
-        type: AnimalType,
-        population: Int,
-        parentPosition: (Int, Int)
-    ) -> (Animal, (Int, Int), Int)? {
-        var newAnimal: Animal?
-        var newAnimalPosition: (Int, Int)?
-        
-        let fieldMover = FieldMoverImpl()
-        
-        switch type {
-        case .rabbit:
-            if Int.random(in: 0..<10) == 0 {
-                if let position = fieldMover.getRandomMovePosition(
-                    on: field,
-                    currentPosition: parentPosition
-                ) {
-                    newAnimalPosition = position
-                    newAnimal = Animal(population: population + 1, type: .rabbit)
-                }
+    
+    private func moveWolf(
+        _ wolf: Animal,
+        field: inout Array<[Animal]>,
+        currentPosition: (Int, Int)
+    ) {
+        if wolf.hp < Double(wolfLifeTime) / 2 {
+            if let rabbitPosition = fieldMover.getRandomPosition(
+                on: field,
+                currentPosition: currentPosition,
+                findType: .rabbit
+            ) {
+                field.eatRabbit(
+                    wolfType: wolf.type,
+                    maxHP: Double(wolfLifeTime),
+                    wolfPosition: currentPosition,
+                    rabbitPosition: rabbitPosition
+                )
+                rabbitCount -= 1
+            } else {
+                field.changeHPAndDeleteIfNeeded(position: currentPosition)
             }
-        case .wolfMale:
-            break
-        case .wolfFemale:
-            break
-        case .empty:
-            break
-        }
-        
-        if let newAnimal, let newAnimalPosition {
-            return (newAnimal, newAnimalPosition, population + 1)
         } else {
-            return nil
+            if let newWolfPosititon = fieldMover.getRandomPosition(
+                on: field,
+                currentPosition: currentPosition,
+                findType: .empty
+            ) {
+                let movedWolf = field.swapPositionAndChangeHP(
+                    old: currentPosition,
+                    new: newWolfPosititon
+                )
+                if movedWolf == nil {
+                    if wolf.type == .wolfFemale {
+                        wolfsFemaleCount -= 1
+                    } else {
+                        wolfsMaleCount -= 1
+                    }
+                }
+            } else {
+                field.changeHPAndDeleteIfNeeded(position: currentPosition)
+            }
         }
     }
 }
 
 extension Array where Element == [Animal] {
-    mutating func swapPosition(old: (Int, Int), new: (Int, Int)) {
-        let element = self[old.0][old.1]
-        self[old.0][old.1] = Animal(population: 0, type: .empty)
-        self[new.0][new.1] = element
+    @discardableResult
+    mutating func swapPositionAndChangeHP(old: (Int, Int), new: (Int, Int)) -> Animal? {
+        var element: Animal = self[old.0][old.1]
+        self[old.0][old.1] = Animal(population: 0, type: .empty, hp: -1)
+        if element.type == .rabbit {
+            self[new.0][new.1] = element
+        } else {
+            element = Animal(population: element.population, type: element.type, hp: element.hp - 1)
+            if element.hp <= 0 {
+                self[new.0][new.1] = Animal(population: 0, type: .empty, hp: -1)
+                return nil
+            } else {
+                self[new.0][new.1] = element
+            }
+        }
+        
+        return element
+    }
+    
+    @discardableResult
+    mutating func changeHPAndDeleteIfNeeded(position: (Int, Int)) -> Animal? {
+        var element = self[position.0][position.1]
+        element = Animal(population: element.population, type: element.type, hp: element.hp - 1)
+        if element.hp <= 0 {
+            self[position.0][position.1] = Animal(population: 0, type: .empty, hp: -1)
+            return nil
+        } else {
+            self[position.0][position.1] = element
+        }
+        
+        return element
+    }
+    
+    @discardableResult
+    mutating func eatRabbit(
+        wolfType: AnimalType,
+        maxHP: Double,
+        wolfPosition: (Int, Int),
+        rabbitPosition: (Int, Int)
+    ) -> Animal {
+        let element = self[wolfPosition.0][wolfPosition.1]
+        self[wolfPosition.0][wolfPosition.1] = Animal(population: 0, type: .empty, hp: -1)
+        let wolf = Animal(
+            population: element.population,
+            type: wolfType,
+            hp: maxHP
+        )
+        self[rabbitPosition.0][rabbitPosition.1] = wolf
+        
+        return wolf
     }
     
     mutating func addAnimal(animal: Animal, position: (Int, Int)) {
         self[position.0][position.1] = animal
     }
     
-    mutating func updatePopulation(for animalType: AnimalType, value: Int) {
+    mutating func updatePopulation(for animalType: AnimalType, value: Int, hp: Double? = nil) {
         guard let first = self.first, !self.isEmpty, !first.isEmpty else {
             return
         }
@@ -171,7 +230,7 @@ extension Array where Element == [Animal] {
         for i in 0..<self.count - 1 {
             for j in 0..<self[0].count {
                 if self[i][j].type == animalType {
-                    self[i][j] = Animal(population: value, type: .rabbit)
+                    self[i][j] = Animal(population: value, type: animalType, hp: hp ?? -1)
                 }
             }
         }

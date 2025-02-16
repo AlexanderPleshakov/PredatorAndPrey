@@ -85,7 +85,8 @@ struct ContentView: View {
                                 height: Int(fieldHeight) ?? 0,
                                 rabbits: Int(rabbitCount) ?? 0,
                                 wolfMale: Int(wolfsMaleCount) ?? 0,
-                                wolfFemale: Int(wolfsFemaleCount) ?? 0
+                                wolfFemale: Int(wolfsFemaleCount) ?? 0,
+                                wolfLifetime: Int(wolfsFemaleCount) ?? 0
                             )
                             updateItems(with: field)
                             

@@ -11,4 +11,5 @@ struct Animal: Hashable, Identifiable {
     let id: UUID = UUID()
     let population: Int
     let type: AnimalType
+    var hp: Double
 }

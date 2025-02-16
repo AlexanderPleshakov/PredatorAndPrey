@@ -7,16 +7,18 @@
 
 
 protocol FieldMover {
-    func getRandomMovePosition(
+    func getRandomPosition(
         on field: [[Animal]],
-        currentPosition: (Int, Int)
+        currentPosition: (Int, Int),
+        findType: AnimalType
     ) -> (Int, Int)?
 }
 
 final class FieldMoverImpl: FieldMover {
-    func getRandomMovePosition(
+    func getRandomPosition(
         on field: [[Animal]],
-        currentPosition: (Int, Int)
+        currentPosition: (Int, Int),
+        findType: AnimalType = .empty
     ) -> (Int, Int)? {
         guard let first = field.first, !field.isEmpty || !first.isEmpty else {
             return nil
@@ -64,7 +66,7 @@ final class FieldMoverImpl: FieldMover {
             
             let row = currentPosition.0 + rowOffset
             let element = currentPosition.1 + elementOffset
-            if field[row][element].type == .empty {
+            if field[row][element].type == findType {
                 newPosition = (row, element)
             } else {
                 if let position = getPositionIndex(row: rowOffset, element: elementOffset) {
