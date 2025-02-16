@@ -159,7 +159,15 @@ final class FieldManager: FieldUpdater {
                     }
                 }
             } else {
-                field.changeHPAndDeleteIfNeeded(position: currentPosition)
+                let movedWolf = field.changeHPAndDeleteIfNeeded(position: currentPosition)
+                
+                if movedWolf == nil {
+                    if wolf.type == .wolfFemale {
+                        wolfsFemaleCount -= 1
+                    } else {
+                        wolfsMaleCount -= 1
+                    }
+                }
             }
         }
     }

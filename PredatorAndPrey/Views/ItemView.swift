@@ -13,7 +13,7 @@ struct ItemView: View {
 
     var body: some View {
         if model.type != .empty {
-            Text("")
+            Text(model.hp != -1 ? "\(Int(model.hp))" : "")
                 .font(.system(size: 13))
                 .frame(width: size, height: size)
                 .background(model.type == .rabbit ? .blue : (model.type == .wolfMale ? .red : .pink))

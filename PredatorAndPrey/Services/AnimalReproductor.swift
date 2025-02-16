@@ -58,7 +58,7 @@ final class AnimalReproductorImpl: AnimalReproductor {
                         newAnimal = Animal(
                             population: population + 1,
                             type: Bool.random() ? .wolfMale : .wolfFemale,
-                            hp: maxHP
+                            hp: maxHP / 2
                         )
                     }
                 }
@@ -80,7 +80,7 @@ final class AnimalReproductorImpl: AnimalReproductor {
                         newAnimal = Animal(
                             population: population + 1,
                             type: Bool.random() ? .wolfMale : .wolfFemale,
-                            hp: maxHP
+                            hp: maxHP / 2
                         )
                     }
                 }

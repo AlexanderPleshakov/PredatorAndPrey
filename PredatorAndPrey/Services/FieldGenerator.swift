@@ -48,7 +48,7 @@ final class FieldGenerator {
                     resultArray[rowIndex][modelIndex] = Animal(
                         population: rabbits,
                         type: .rabbit,
-                        hp: Double(wolfLifetime))
+                        hp: -1)
                     currentRabits -= 1
                 } else if type == 1 && currentwolfMale > 0 {
                     resultArray[rowIndex][modelIndex] = Animal(

@@ -40,8 +40,6 @@ struct ContentView: View {
             let windowWidth = geometry.size.width
             let menuWindowWidth = (windowWidth * 0.25 < 200 ? 200 : (windowWidth * 0.25 > 300 ? 300 : windowWidth * 0.25))
             let fieldWindowWidth: CGFloat = (menuWindowWidth < 200 ? windowWidth - 200 : (windowWidth * 0.25 > 300 ? windowWidth - 300 : windowWidth * 0.75))
-            let fieldWindowHeight: CGFloat = geometry.size.height - 32
-            let cellSize: CGFloat = Int(fieldWidth) != nil ? fieldWindowWidth / CGFloat(Int(fieldWidth)!) : 0
             
             HStack(alignment: .top, spacing: 0) {
                 VStack(alignment: .center, spacing: 10) {
@@ -89,7 +87,7 @@ struct ContentView: View {
                                 rabbits: Int(rabbitCount) ?? 0,
                                 wolfMale: Int(wolfsMaleCount) ?? 0,
                                 wolfFemale: Int(wolfsFemaleCount) ?? 0,
-                                wolfLifetime: Int(wolfsFemaleCount) ?? 0
+                                wolfLifetime: Int(wolfLifeTime) ?? 0
                             )
                             updateItems(with: field)
                             
